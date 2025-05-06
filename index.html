@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Волшебная звёздочка</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #0a0a23;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            position: relative;
+            text-align: center;
+        }
+
+        .star {
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23FFD700" d="M12 0l3.09 6.26L22 7.27l-5 4.87 1.18 6.88L12 16l-6.18 3.02L7 12.14 2 7.27l6.91-1.01L12 0z"/></svg>') center/contain;
+            animation: pulse 2s infinite;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s;
+        }
+
+        .star:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .click-text {
+            position: absolute;
+            top: 120px;
+            width: 100%;
+            font-size: 24px;
+            color: #ff69b4;
+            animation: fadeOut 1s forwards 2s;
+            opacity: 1;
+        }
+
+        .message {
+            position: absolute;
+            top: 120px;
+            width: 100%;
+            font-size: 24px;
+            color: #ff69b4;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .firework {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FFD700;
+            border-radius: 50%;
+            animation: fireworks 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        .heart-rain {
+            position: absolute;
+            font-size: 20px;
+            color: #ff1493;
+            animation: rain linear forwards;
+            pointer-events: none;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes fireworks {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x, 0), var(--y, 0)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes rain {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="click-text">жмякай)</div>
+        <div class="star" id="star"></div>
+        <div class="message" id="message">это ты❤️</div>
+    </div>
+
+    <script>
+        const star = document.getElementById('star');
+        const clickText = document.querySelector('.click-text');
+        const message = document.getElementById('message');
+        let animationInProgress = false;
+
+        // Автоматическое исчезновение начального текста
+        setTimeout(() => {
+            clickText.style.animation = 'fadeOut 1s forwards';
+        }, 2000);
+
+        // Обработчики событий
+        star.addEventListener('click', activateEffects);
+        star.addEventListener('touchstart', activateEffects, { passive: true });
+
+        function activateEffects(e) {
+            if(animationInProgress) return;
+            animationInProgress = true;
+            
+            // Скрываем начальный текст
+            clickText.style.display = 'none';
+            
+            // Показываем сообщение
+            message.style.opacity = '1';
+            
+            // Запускаем салют
+            createFireworks();
+            
+            // Запускаем звездопад
+            startHeartRain();
+            
+            // Возвращаем возможность повторного запуска
+            setTimeout(() => {
+                animationInProgress = false;
+            }, 3000);
+        }
+
+        function createFireworks() {
+            const rect = star.getBoundingClientRect();
+            const centerX = rect.left + rect.width/2;
+            const centerY = rect.top + rect.height/2;
+
+            for(let i = 0; i < 30; i++) {
+                const firework = document.createElement('div');
+                firework.className = 'firework';
+                firework.style.left = `${centerX}px`;
+                firework.style.top = `${centerY}px`;
+                firework.style.setProperty('--x', `${Math.random() * 200 - 100}px`);
+                firework.style.setProperty('--y', `${Math.random() * 200 - 100}px`);
+                document.body.appendChild(firework);
+                setTimeout(() => firework.remove(), 1000);
+            }
+        }
+
+        function startHeartRain() {
+            const rainDuration = 3000;
+            const start = Date.now();
+            
+            function rain() {
+                if(Date.now() - start > rainDuration) return;
+                
+                const heart = document.createElement('div');
+                heart.className = 'heart-rain';
+                heart.innerHTML = '❤️';
+                heart.style.left = `${Math.random() * 100}%`;
+                heart.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                document.body.appendChild(heart);
+                
+                heart.addEventListener('animationend', () => heart.remove());
+                
+                requestAnimationFrame(rain);
+            }
+            
+            rain();
+        }
+    </script>
+</body>
+</html>
